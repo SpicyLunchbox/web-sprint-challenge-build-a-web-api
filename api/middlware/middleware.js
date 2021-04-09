@@ -22,6 +22,8 @@ function validateProjectId(req,res,next) {
         .then(project => {
             if(project === null){
                 res.status(404).json({message: `project not found`})
+            }else{
+                next()
             }
         })
 }

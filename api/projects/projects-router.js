@@ -32,6 +32,9 @@ router.get(`/:id`, mw.validateProjectId,  (req,res) => {
 
 // [POST] /api/projects returns the newly created project as the body of the response.
 router.post(`/`, (req,res) => {
+    if(!res.body.name || !res.body.description) {
+        res.status(400).json({message: `projects require a name and description`})
+    }
     Projects.insert(req.body)
         .then(project => {
             res.status(201).json(project)
@@ -45,6 +48,9 @@ router.post(`/`, (req,res) => {
 
 // [PUT] /api/projects/:id returns the updated project as the body of the response.
 router.put(`/:id`, mw.validateProjectId, (req,res) => {
+    if(!res.body.name || !res.body.description) {
+        res.status(400).json({message: `projects require a name and description`})
+    }
     const id = req.params.id
     const changes = req.body
     Projects.update(id,changes)
@@ -59,7 +65,9 @@ router.put(`/:id`, mw.validateProjectId, (req,res) => {
 // [DELETE] /api/projects/:id returns no response body.
 router.delete(`/:id`, mw.validateProjectId, (req,res) => {
     Projects.remove(req.params.id)
-        .then()
+        .then(project => {
+            res.status(201).json(`project deletion successful`)
+        })
         .catch(err => {
             res.status(500).json({message: `unable to delete project`})
         })

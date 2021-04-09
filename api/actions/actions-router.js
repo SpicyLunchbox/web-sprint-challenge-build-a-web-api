@@ -77,7 +77,7 @@ router.put(`/:id`, mw.validateActionId, (req,res) => {
 router.delete(`/:id`, mw.validateActionId, (req,res) => {
     Actions.remove(req.params.id)
         .then(action => {
-            res.status(201).json(`delete successful`)
+            res.status(201).json(`action deletion successful`)
         })
         .catch(err => {
             res.status(500).json({message: `unable to delete action`})
