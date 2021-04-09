@@ -1,5 +1,7 @@
 const Actions = require(`./actions-model.js`); // imports actions model
+const Projects = require(`../projects/projects-model.js`) // imports projects model
 const express = require('express'); // imports express
+const mw = require(`../middlware/middleware.js`); // imports middleware
 
 const router = express.Router(); // creates router using express
 
@@ -18,8 +20,8 @@ router.get(`/`, (req,res) => {
 
 
 // [GET] /api/actions/:id returns an action with the given id as the body of the response.
-router.get(`/:id`, (req,res) => {
-    router.get(req.params.id)
+router.get(`/:id`, mw.validateActionId, (req,res) => {
+    Actions.get(req.params.id)
         .then(action => {
             res.status(200).json(action)
         })
@@ -32,11 +34,21 @@ router.get(`/:id`, (req,res) => {
 
 // [POST] /api/actions returns the newly created action as the body of the response.
 router.post(`/`, (req,res) => {
-    router.insert(req.body)
+    if(!res.body.project_id || !res.body.description || !res.body.notes) {
+        res.status(400).json({message: `action requires project id, description, and notes`})
+    }
+    Projects.get(res.body.project_id)
+        .then(project => {
+            if(project === null) {
+                res.status(404).json({message: `project doesn't exist`})
+            }
+        })
+    Actions.insert(req.body)
         .then(action => {
             res.status(201).json(action)
         })
         .catch(err => {
+            console.log(err)
             res.status(500).json({message: `unable to create new action`})
         })
 })
@@ -44,10 +56,13 @@ router.post(`/`, (req,res) => {
 
 
 // [PUT] /api/actions/:id returns the updated action as the body of the response.
-router.put(`/:id`, (req,res) => {
+router.put(`/:id`, mw.validateActionId, (req,res) => {
+    if(!res.body.project_id || !res.body.description || !res.body.notes) {
+         res.status(400).json({message: `action requires project id, description, and notes`})
+    }
     const id = req.params.id
     const changes = req.body
-    router.update(id,changes)
+    Actions.update(id,changes)
         .then(action => {
             res.status(201).json(action)
         })
@@ -59,9 +74,11 @@ router.put(`/:id`, (req,res) => {
 
 
 // [DELETE] /api/actions/:id returns no response body.
-router.delete(`/:id`, (req,res) => {
-    router.remove(req.params.id)
-        .then()
+router.delete(`/:id`, mw.validateActionId, (req,res) => {
+    Actions.remove(req.params.id)
+        .then(action => {
+            res.status(201).json(`delete successful`)
+        })
         .catch(err => {
             res.status(500).json({message: `unable to delete action`})
         })

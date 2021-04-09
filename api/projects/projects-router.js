@@ -1,45 +1,78 @@
 const Projects = require(`./projects-model.js`); // imports projects model
 const express = require(`express`); // imports express
-
+const mw = require(`../middlware/middleware.js`); // imports middleware
 const router = express.Router(); // creates router using express
 
 
 // [GET] /api/projects returns an array of projects (or an empty array) as the body of the response.
 router.get(`/`, (req,res) => {
-
+    Projects.get()
+        .then(projects => {
+            res.status(200).json(projects)
+        })
+        .catch(err => {
+            res.status(500).json({message: `unable to retrieve projects`})
+        })
 })
 
 
 
 // [GET] /api/projects/:id returns a project with the given id as the body of the response.
-router.get(`/:id`, (req,res) => {
-
+router.get(`/:id`, mw.validateProjectId,  (req,res) => {
+    Projects.get(req.params.id)
+        .then(project => {
+            res.status(200).json(project)
+        })
+        .catch(err => {
+            res.status(500).json({message: `unable to retrieve project`})
+        })
 })
-
 
 
 
 // [POST] /api/projects returns the newly created project as the body of the response.
 router.post(`/`, (req,res) => {
-
-
+    Projects.insert(req.body)
+        .then(project => {
+            res.status(201).json(project)
+        })
+        .catch(err => {
+            res.status(500).json({message: `unable to create new project`})
+        })
 })
 
 
 
 // [PUT] /api/projects/:id returns the updated project as the body of the response.
-router.put(`/:id`, (req,res) => {
-
+router.put(`/:id`, mw.validateProjectId, (req,res) => {
+    const id = req.params.id
+    const changes = req.body
+    Projects.update(id,changes)
+        .then(project => {
+            res.status(201).json(project)
+        })
+        .catch(500).json({message: `unable to update project`})
 })
 
 
 
 // [DELETE] /api/projects/:id returns no response body.
-router.delete(`/:id`, (req,res) => {
-    
+router.delete(`/:id`, mw.validateProjectId, (req,res) => {
+    Projects.remove(req.params.id)
+        .then()
+        .catch(err => {
+            res.status(500).json({message: `unable to delete project`})
+        })
 })
 
-
-
+router.get(`/:id/actions`, (req,res) => {
+    Projects.getProjectActions(req.params.id)
+        .then(actions => {
+            res.status(200).json(actions)
+        })
+        .catch(err => {
+            res.status(500).json({message: `unable to retrieve actions associated with project`})
+        })
+})
 
 module.exports = router; // exports router for use in server.js
